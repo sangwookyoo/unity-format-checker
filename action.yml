@@ -1,6 +1,6 @@
 name: 'Unity Format Checker'
 author: Sangwook Yoo <tkddnr032@gmail.com>
-description: 'The GitHub Actions workflow checks the format of your Unity project`s C# code, generates a temporary project file, validates it with .NET formatting tools, and deletes the file.'
+description: 'Check the C# code format of your Unity project.'
 
 # https://actions-cool.github.io/github-action-branding/
 branding:
