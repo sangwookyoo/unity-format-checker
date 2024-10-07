@@ -1,0 +1,58 @@
+name: 'Unity Format Checker'
+author: Sangwook Yoo <tkddnr032@gmail.com>
+description: 'The GitHub Actions workflow checks the format of your Unity project`s C# code, generates a temporary project file, validates it with .NET formatting tools, and deletes the file.'
+
+# https://actions-cool.github.io/github-action-branding/
+branding:
+  icon: 'command'
+  color: 'gray-dark'
+
+inputs:
+  target_directory:
+    description: 'The directory containing the C# scripts to check (default: Assets/Scripts).'
+    required: false
+    default: 'Assets/Scripts'
+
+outputs:
+  formatted:
+    description: 'Indicates whether the formatting check was successful or not.'
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Create temporary project file
+      run: |
+        echo "<Project Sdk=\"Microsoft.NET.Sdk\">
+          <PropertyGroup>
+            <TargetFramework>net8.0</TargetFramework>
+            <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+          </PropertyGroup>
+          <ItemGroup>
+            <Compile Include=\"${{ inputs.target_directory }}/*.cs\" />
+          </ItemGroup>
+        </Project>" > temp.csproj
+
+    - name: Install dotnet format tool
+      run: dotnet tool install -g dotnet-format
+
+    - name: Restore dotnet tools
+      run: dotnet tool restore
+      
+    - name: Format code
+      run: dotnet format temp.csproj --verify-no-changes --verbosity diagnostic
+      id: format_check
+
+    - name: Set Output
+      run: echo "formatted=${{ steps.format_check.outcome }}" >> $GITHUB_ENV
+      
+    - name: Cleanup
+      run: rm temp.csproj
